@@ -1,0 +1,14 @@
+C:\Users\mungs\Desktop\vmas9\vmas9\bin\Debug\net9.0\vmas9.exe
+C:\Users\mungs\Desktop\vmas9\vmas9\bin\Debug\net9.0\vmas9.deps.json
+C:\Users\mungs\Desktop\vmas9\vmas9\bin\Debug\net9.0\vmas9.runtimeconfig.json
+C:\Users\mungs\Desktop\vmas9\vmas9\bin\Debug\net9.0\vmas9.dll
+C:\Users\mungs\Desktop\vmas9\vmas9\bin\Debug\net9.0\vmas9.pdb
+C:\Users\mungs\Desktop\vmas9\vmas9\obj\Debug\net9.0\vmas9.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\mungs\Desktop\vmas9\vmas9\obj\Debug\net9.0\vmas9.AssemblyInfoInputs.cache
+C:\Users\mungs\Desktop\vmas9\vmas9\obj\Debug\net9.0\vmas9.AssemblyInfo.cs
+C:\Users\mungs\Desktop\vmas9\vmas9\obj\Debug\net9.0\vmas9.csproj.CoreCompileInputs.cache
+C:\Users\mungs\Desktop\vmas9\vmas9\obj\Debug\net9.0\vmas9.dll
+C:\Users\mungs\Desktop\vmas9\vmas9\obj\Debug\net9.0\refint\vmas9.dll
+C:\Users\mungs\Desktop\vmas9\vmas9\obj\Debug\net9.0\vmas9.pdb
+C:\Users\mungs\Desktop\vmas9\vmas9\obj\Debug\net9.0\vmas9.genruntimeconfig.cache
+C:\Users\mungs\Desktop\vmas9\vmas9\obj\Debug\net9.0\ref\vmas9.dll
