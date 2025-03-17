@@ -1,24 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\mungs\\Desktop\\vmas9\\vmas9\\vmas9.csproj": {}
+    "/mnt/c/Users/mungs/Desktop/vmas9/vmas9/vmas9.csproj": {}
   },
   "projects": {
-    "C:\\Users\\mungs\\Desktop\\vmas9\\vmas9\\vmas9.csproj": {
+    "/mnt/c/Users/mungs/Desktop/vmas9/vmas9/vmas9.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\mungs\\Desktop\\vmas9\\vmas9\\vmas9.csproj",
+        "projectUniqueName": "/mnt/c/Users/mungs/Desktop/vmas9/vmas9/vmas9.csproj",
         "projectName": "vmas9",
-        "projectPath": "C:\\Users\\mungs\\Desktop\\vmas9\\vmas9\\vmas9.csproj",
-        "packagesPath": "C:\\Users\\mungs\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\mungs\\Desktop\\vmas9\\vmas9\\obj\\",
+        "projectPath": "/mnt/c/Users/mungs/Desktop/vmas9/vmas9/vmas9.csproj",
+        "packagesPath": "/home/msshen/.nuget/packages/",
+        "outputPath": "/mnt/c/Users/mungs/Desktop/vmas9/vmas9/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\mungs\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config"
+          "/home/msshen/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
@@ -42,7 +38,7 @@
           "auditLevel": "low",
           "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.100"
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net9.0": {
@@ -63,7 +59,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.102/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.200/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
