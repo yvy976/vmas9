@@ -80,9 +80,10 @@ public class Pass1
                     lineNumber += (int)Math.Ceiling((double)(value.Length / 3));
                     alreadyAdd = true;
                 }
-            if (!alreadyAdd)      lineNumber++;
 
             }
+            if (!alreadyAdd)      lineNumber++;
+
         }
         sr.Close();
 
@@ -133,6 +134,9 @@ public class Pass1
                         break;
                     case "rem":
                         _instructions.Add(new Rem());
+                        break;
+                    case "and":
+                        _instructions.Add(new And());
                         break;
                     case "or":
                         _instructions.Add(new Or());
@@ -195,6 +199,9 @@ public class Pass1
 
 
                         _instructions.Add(new Push(_instrLine[s], 0));
+                        break;
+                    case "nop":
+                        _instructions.Add(new Nop());
                         break;
                     case "stpush":
                         // _instructions.Add(new Stpush(s, 0));

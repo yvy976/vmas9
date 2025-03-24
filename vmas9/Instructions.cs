@@ -280,8 +280,14 @@ public class Return : IInstruction
     private readonly int _offset;
     public Return(string[] s)
     {
-        _offset = Convert.ToInt32(s[1]) & ~3;
+        if (s.Length == 1){
+            _offset = 0;
+        } else {
+            _offset = Convert.ToInt32(s[1]) ;
+        }
+        _offset &= ~3;
     }
+
     public int Encode()
     {
         return (0b110 << 28) | _offset;
@@ -295,7 +301,7 @@ public class Goto : IInstruction
     {
         // _offset = ln < d[s[1]] ?  d[s[1]] - ln : ln - d[s[1]] ;
         _offset = d[s[1]][1];
-            if (_offset < 0 ) _offset --;
+            // if (_offset < 0 ) _offset --;
 
         // if (_offset < 0) _offset += 1;
         // else _offset -= 1;
@@ -349,7 +355,7 @@ public class If : IInstruction
         else
         {
             _offset = int.TryParse(s[1], out int result) ? result :  d[s[1]][1];
-            if (_offset < 0 ) _offset --;
+            // if (_offset < 0 ) _offset --;
         }
 
 
