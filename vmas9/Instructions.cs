@@ -1,6 +1,7 @@
 
 using System.Diagnostics.SymbolStore;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 
 public class Exit : IInstruction
 {
@@ -74,7 +75,7 @@ public class StringInput : IInstruction
     }
     public int Encode()
     {
-        return (int)((0101 << 24) | _size) & ((1 << 28) - 1);
+        return (int)((0b0101 << 24)| ( _size & ((1 << 24) - 1)));
     }
 }
 
@@ -83,7 +84,15 @@ public class Debug : IInstruction
     private readonly int _value;
     public Debug(string[] s)
     {
-        _value = Convert.ToInt32(s[1]);
+        if (s.Length == 1) {
+            _value = 0;
+        } else {
+            if (s[1].StartsWith("0x")) {
+                _value = (Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber));
+            } else {
+                _value = Convert.ToInt32(s[1]);}
+        
+        }
     }
     public int Encode()
     {
@@ -260,12 +269,14 @@ public class Stprint : IInstruction
 public class Call : IInstruction
 {
     private readonly int _offset;
-    public Call(string[] s, Dictionary<string, int[]> d)
+    public Call(string[] s, Dictionary<string, int[]> d, bool first)
     {
+        
         _offset = d[s[1]][1] ;
-
         // if (_offset < 0) _offset += 1;
-
+        if (!first) {
+            _offset -= 2;
+        }
         _offset *= 4;
         // _offset &= ~3;
     }
@@ -297,22 +308,16 @@ public class Return : IInstruction
 public class Goto : IInstruction
 {
     private readonly int _offset;
-    public Goto(string[] s, int ln, Dictionary<string, int[]> d)
+    public Goto(string[] s, int ln, Dictionary<string, int[]> d, bool first)
     {
-        // _offset = ln < d[s[1]] ?  d[s[1]] - ln : ln - d[s[1]] ;
-        _offset = d[s[1]][1];
-            // if (_offset < 0 ) _offset --;
-
-        // if (_offset < 0) _offset += 1;
-        // else _offset -= 1;
-
-        //  if (_offset < 0) _offset += 1;
-
-        // _offset = ln > d[s[1]] ? Math.Abs(_offset) - 2: _offset;
+       
+        _offset = d[s[1]][1] ;
+        // if (!first) {
+        //     _offset -= 2;
+        // }
+        // _offset-=1;
         Console.WriteLine($"goto offset {_offset}");
 
-        // _offset =  ((d[s[1]] - ln)) ;
-        // if (_offset < 0) _offset -= 1;
         _offset *= 4;
 
     }
@@ -341,10 +346,9 @@ public class If : IInstruction
         {"mi", 0b1010},
         {"pl", 0b1011},
     };
-    public If(string[] s, int ln, Dictionary<string, int[]> d)
+    public If(string[] s, int ln, Dictionary<string, int[]> d, bool first)
     {
         var cond = s[0].Substring(2, 2);
-
         // _offset = int.TryParse(s[1], out int result) ? result : (d[s[1]][1]  - ln);
 
 
@@ -358,16 +362,24 @@ public class If : IInstruction
             // if (_offset < 0 ) _offset --;
         }
 
+        if (cond == "mi") Console.WriteLine($"LIENNNNNNNNNNNNNNN {_offset}");
+        if (cond == "ez") Console.WriteLine($"LeeeeeeeeeeeeeeIENNNNNNNNNNNNNNN {_offset}");
 
 
-
+//  if (_offset > 0 ) _offset -= 1;
+        // else _offset -= 2;
+        // if (!first) {
+        //     _offset -= 2;
+        // }
         _offset *= 4;
+       
+        // Console.WriteLine($"OFFEST: {_offset}");
         _code = IfCodes[cond];
         if (_code >= 8)
         { // unary if
             _code = _code & ~8;
             _opcode = 0b1001;
-            // binary = false;
+            // binary = false; 
         }
         else
         { // binary if
@@ -382,6 +394,71 @@ public class If : IInstruction
         return (_opcode << 28) | (_code << 25) | _offset & ((1 << 24) - 1);
     }
 }
+
+// public class If2 : IInstruction {
+//     private readonly int _opcode;
+//     private readonly int _code;
+//     private readonly int _offset;
+//     // private readonly bool binary;
+//     private Dictionary<string, int> IfCodes = new Dictionary<string, int> {
+//         {"eq", 0b0},
+//         {"ne", 0b1},
+//         {"lt", 0b10},
+//         {"gt", 0b11},
+//         {"le", 0b100},
+//         {"ge", 0b101},
+
+//         {"ez", 0b1000},
+//         {"nz", 0b1001},
+//         {"mi", 0b1010},
+//         {"pl", 0b1011},
+//     };
+//  public If2(string[] s, int ln, Dictionary<string, int[]> d, bool first)
+//     {
+//         var cond = s[0].Substring(2, 2);
+//         // _offset = int.TryParse(s[1], out int result) ? result : (d[s[1]][1]  - ln);
+
+
+//         if (s[1].StartsWith("0x"))
+//         {
+//             _offset = (Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber));
+//         }
+//         else
+//         {
+//             _offset = int.TryParse(s[1], out int result) ? result :  d[s[1]][1];
+//             // if (_offset < 0 ) _offset --;
+//         }
+
+//         if (cond == "mi") Console.WriteLine($"LIENNNNNNNNNNNNNNN {_offset}");
+//         if (cond == "ez") Console.WriteLine($"LeeeeeeeeeeeeeeIENNNNNNNNNNNNNNN {_offset}");
+
+
+// //  if (_offset > 0 ) _offset -= 1;
+//         // else _offset -= 2;
+//         // if (!first) {
+//         //     _offset -= 1;
+//         // }
+//         _offset *= 4;
+       
+//         // Console.WriteLine($"OFFEST: {_offset}");
+//         _code = IfCodes[cond];
+//         if (_code >= 8)
+//         { // unary if
+//             _code = _code & ~8;
+//             _opcode = 0b1001;
+//             // binary = false; 
+//         }
+//         else
+//         { // binary if
+//             _opcode = 0b1000;
+//             // binary = true;
+//         }
+//         Console.WriteLine(_code);
+//     }
+//     public int Encode() {
+//         return (_opcode << 28) | (_code << 25) | _offset & ((1 << 24) - 1);
+//     }
+// }
 
 public class Dup : IInstruction
 {

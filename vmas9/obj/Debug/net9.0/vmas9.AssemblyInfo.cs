@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("vmas9")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c618a4b467c92c7d7474d068cc0501c8a51cf8eb")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2db5c28c2c87269b90e611951a752de7dcaea9f5")]
 [assembly: System.Reflection.AssemblyProductAttribute("vmas9")]
 [assembly: System.Reflection.AssemblyTitleAttribute("vmas9")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
