@@ -8,96 +8,103 @@ class Assembler
 {
     public static void Main(string[] args)
     {
-        Pass1 p = new Pass1(args[0]);
-
-
+        Pass1 p = new Pass1(args[0], args[1]);
     }
-
 }
 
 public class Pass1
 {
+    //Dictionary keyed on label name, values at int[] index [1] and [2] are relative and absolute offset respectively. Value at [0]
+    //is 0 by default.
     public Dictionary<string, int[]> _labels;
 
+    //List containing the entire line contents of each instruction
     private List<string[]> _instrLine;
+            
+    //List of IInstruction class instances which will need their encode method called
     private List<IInstruction> _instructions;
 
-    private int _label_mem_location;
     private int _instruction_mem_location;
 
-    public Pass1(string filename)
+    public Pass1(string filename, string out_filename)
     {
+        //Initializing fields when constructor is called
         _labels = new Dictionary<string, int[]> { };
         _instructions = new List<IInstruction> { };
         _instrLine = new List<string[]> { };
-        _label_mem_location = 0;
         _instruction_mem_location = 0;
         int lineNumber = 0;
+
+        // String for each line of the file to be read into
         string? line;
+        
         StreamReader sr;
         try
         {
             sr = new StreamReader(filename);
-
         }
         catch (FileNotFoundException e)
         {
             throw new FileNotFoundException($"{e}");
         }
+
+        //Read and parse .asm file, skipping comment and whitespace lines, and recording proper memory location of each label
         while ((line = sr.ReadLine()) != null)
         {
             bool alreadyAdd = false;
             if (line.Trim().StartsWith("#") || string.IsNullOrWhiteSpace(line)) continue;
-            line = line.Split("#", 2, StringSplitOptions.None)[0].Trim();
 
-            var ins = line.Split(" ", 1, StringSplitOptions.RemoveEmptyEntries)[0];
+            //Trim comments when they occur on the same line as label or instruction
+            line = line.Split("#", 2, StringSplitOptions.None)[0].Trim();       
+            
+            //var ins = line.Split(" ", 1, StringSplitOptions.RemoveEmptyEntries)[0];
+
+            //Recording proper label info
             if (line.Trim().EndsWith(':'))
             {
-                var label = line[0..(line.Length - 1)];
+                var label = line[0..(line.Length - 1)];     //parse label to remove ':'
                 _labels.Add(label, new int[3]);
-                // Console.WriteLine($"{label} {lineNumber}");
                 _labels[label][0] = 0;
                 _labels[label][1] = lineNumber;
                 _labels[label][2] = lineNumber;
-                _label_mem_location += 4;
                 _instrLine.Add(line.Split(" ", StringSplitOptions.RemoveEmptyEntries));
                 continue;
-
             }
+
+            //Recording instruction info and adding the instruction to its list
             else
             {
-                var x = line.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+                //parsing instruction to remove additional whitespace. instr[0] will be the instruction title, instr[1] will be its number or string parameter.
+                var instr = line.Split(" ", StringSplitOptions.RemoveEmptyEntries);  
                 
-                if (x[0] == "stpush")
+                //If the instruction is stpush pseudoinstruction, handle correct number of instructions it would add when pushing the associated
+                //string
+                if (instr[0] == "stpush")
                 {
-                    var lx = line.Split(" ", 2, StringSplitOptions.RemoveEmptyEntries);
-                    string value = lx[1][1..(lx[1].Length-1)];
-               
-                    // Console.WriteLine($"!{value}! {value.Length}");
+                    //Parse the string being pushed, trimming the " " marks
+                    var entire_stpush_line_contents = line.Split(" ", 2, StringSplitOptions.RemoveEmptyEntries);
+                    string str_portion_stpush = entire_stpush_line_contents[1][1..(entire_stpush_line_contents[1].Length-1)];
 
-
-                    value = value.Replace("\\\"", "`");
-                    value = value.Replace("\"", "");
-                    value = value.Replace("`", "\"");
-
-                    value = value.Replace("\\n", "\n");
-                    value = value.Replace("\\\\", "\\");
-                    var xe = (int)Math.Ceiling(value.Length / 3.0);
-                    // if (xe == 0) lineNumber += 1;
-                    lineNumber += xe;
+                    //Handle the allowed escapes appropriately
+                    str_portion_stpush = str_portion_stpush.Replace("\\\"", "`");
+                    str_portion_stpush = str_portion_stpush.Replace("\"", "");
+                    str_portion_stpush = str_portion_stpush.Replace("`", "\"");
+                    str_portion_stpush = str_portion_stpush.Replace("\\n", "\n");
+                    str_portion_stpush = str_portion_stpush.Replace("\\\\", "\\");
+                    
+                    //Calculate number of instructions the stpush will add and increment associated line number appropriately
+                    var num_instr_to_add = (int)Math.Ceiling(str_portion_stpush.Length / 3.0);
+                    lineNumber += num_instr_to_add;
                     alreadyAdd = true;
-                    x[1] = value;
-                  
-
+                    instr[1] = str_portion_stpush;
                 }
-                _instrLine.Add(x);
 
-                
-                if (!alreadyAdd) lineNumber++;
-                // Console.WriteLine($"{x[0]} {lineNumber}");
+                _instrLine.Add(instr);
 
+                //Increment line number for the added instruction. Instructions added by stpush are handled seperately and do not get 
+                //incremented again here
+                if (!alreadyAdd) lineNumber++;  
             }
-
         }
         sr.Close();
 
@@ -105,23 +112,19 @@ public class Pass1
         bool first2 = true;
         int prog_counter = 0;
         lineNumber = 0;
-        // foreach (var s in _instrLine)
+
+        //Loop through all the instruction lines and add a new instance of the associated instruction class to IInstruction list while keeping track
+        //of the program counter to handle offsets correctly.
         for (int s = 0; s < _instrLine.Count; s++)
         {
-
-
-            int sub = 1;
-            bool isLabel = false;
-            // Console.WriteLine(_instrLine[s][0]);
+            int pc_increment_value = 1;
             switch (_instrLine[s][0])
             {
-
                 case "exit":
                     _instructions.Add(new Exit(_instrLine[s]));
                     break;
                 case "swap":
                     _instructions.Add(new Swap(_instrLine[s]));
-                    // Console.WriteLine($"{prog_counter} {s}");
                     break;
                 case "input":
                     _instructions.Add(new Input());
@@ -184,7 +187,7 @@ public class Pass1
                     _instructions.Add(new Return(_instrLine[s]));
                     break;
                 case "goto":
-                    _instructions.Add(new Goto(_instrLine[s], prog_counter, _labels, first2));
+                    _instructions.Add(new Goto(_instrLine[s], prog_counter, _labels /*, first2*/));
                     first2 = false;
                     break;
 
@@ -202,7 +205,7 @@ public class Pass1
                 case "ifnz":
                 case "ifmi":
                 case "ifpl":
-                    _instructions.Add(new If(_instrLine[s], prog_counter, _labels,first));
+                    _instructions.Add(new If(_instrLine[s], prog_counter, _labels /*,first*/));
 
                     // Console.WriteLine(prog_counter);
                     first2 = false;
@@ -222,48 +225,39 @@ public class Pass1
                     _instructions.Add(new Dump());
                     break;
                 case "push":
-
-
                     _instructions.Add(new Push(_instrLine[s], 0));
                     break;
                 case "nop":
                     _instructions.Add(new Nop());
                     break;
+                
+                //Handle additional stpush instructions and program counter appropriately, taking endian-ness into account
                 case "stpush":
                     Stpush p = new Stpush(_instrLine[s][1]);
-
-                    var pp = p.Encode();
-                    sub = pp.Count;
-                    for (int i = pp.Count - 1; i >= 0; i -= 1)
+                    var additional_stpush_ins = p.Encode();
+                    pc_increment_value = additional_stpush_ins.Count;
+                    for (int i = additional_stpush_ins.Count - 1; i >= 0; i -= 1)
                     {
                         string[] k = new string[2];
-                        k[1] = pp[i].ToString();
-
+                        k[1] = additional_stpush_ins[i].ToString();
                         _instructions.Add(new Push(k, 1));
                     }
-
-
                     break;
                 default:
-                    sub = 0;
+                    pc_increment_value = 0;
                     break;
-
 
             }
             lineNumber++;
-
-            prog_counter += sub;
-
-
-
+            prog_counter += pc_increment_value;
         }
 
-
-
-
+        //Add Nop to end of _instructions to pad out multiple of 4 instructions appropriately
         for (int i = _instructions.Count; i < (_instructions.Count + 3 & -4); i++) _instructions.Add(new Nop());
 
         Console.WriteLine($"len of mem {_instructions.Count}");
+
+        //Throw exception if there are no instructions in the provided file
         if (_instructions.Count == 0){
             try{
                 throw new Exception($"Invalid file <{filename}>: No instructions to encode.");
@@ -271,19 +265,21 @@ public class Pass1
             catch (Exception e){
                 Console.WriteLine(e);
             }
-            }
-        BinaryWriter br = new BinaryWriter(File.Open("h.v", FileMode.Create));
+        }
+        
+        //Use BinaryWriter to write the encoded instructions to output file specified from command line
+        BinaryWriter br = new BinaryWriter(File.Open(out_filename, FileMode.Create));
 
+        //First 4 bytes will always be deadbeef
         br.Write(0xefbeadde);
+        
+        //Loop through list of instruction class instances, convert encoded values to binary, and write to file in little endian
         foreach (var v in _instructions)
         {
-            // Console.WriteLine(v.ToString());
-
+            //Convert encoded value to binary string and pad to 32 bits
             String e = Convert.ToString(v.Encode(), 2).PadLeft(32, '0');
 
-
-
-            // Console.WriteLine($"{v.Encode()}  {e}");
+            //Writing the encoded bytes in little endian
             List<byte> bytes = new List<byte>();
             for (int i = 0; i < 32; i += 8)
             {
@@ -292,26 +288,7 @@ public class Pass1
             }
             bytes.Reverse();
             br.Write(bytes.ToArray());
-
-            // foreach (var p in e)
-            // {
-            //     // Console.WriteLine(p);
-            //     br.Write($"{p.ToString()}");
-            // }
         }
         br.Close();
-
     }
-
-    private StreamReader StreamReader(string filename)
-    {
-        throw new NotImplementedException();
-    }
-
-    // public int MemLocationAtLabel(string label)
-    // {
-    //     return _labels[label];
-    //     // return _labels.ContainsKey(label) ? _labels[label] : throw new KeyNotFoundException($"Label '{label}' not found.");
-    // }
-
 }

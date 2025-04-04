@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vmas9", "vmas9.csproj", "{444CC13E-F00A-2F81-6703-AEFE02692111}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{444CC13E-F00A-2F81-6703-AEFE02692111}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{444CC13E-F00A-2F81-6703-AEFE02692111}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{444CC13E-F00A-2F81-6703-AEFE02692111}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{444CC13E-F00A-2F81-6703-AEFE02692111}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {1CA66906-08CA-4129-B40E-2AE29E05FA44}
+	EndGlobalSection
+EndGlobal

@@ -1,8 +1,3 @@
-
-using System.Diagnostics.SymbolStore;
-using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
-
 public class Exit : IInstruction
 {
     private readonly int _code;
@@ -26,25 +21,34 @@ public class Swap : IInstruction
     {
         if (s.Length == 3)
         {
-            if (s[1].StartsWith("0x")) {
-                _from = (Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber));
-            } else {
+            if (s[1].StartsWith("0x"))
+            {
+                _from = Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber);
+            }
+            else
+            {
                 _from = Convert.ToInt32(s[1]);
             }
 
-            if (s[2].StartsWith("0x")) {
-                _to = (Int32.Parse(s[2][2..], System.Globalization.NumberStyles.HexNumber));
-            } else {
-_to = Convert.ToInt32(s[2]);
+            if (s[2].StartsWith("0x"))
+            {
+                _to = Int32.Parse(s[2][2..], System.Globalization.NumberStyles.HexNumber);
             }
-            
-            
+            else
+            {
+                _to = Convert.ToInt32(s[2]);
+            }
+
+
         }
         else if (s.Length == 2)
         {
-            if (s[1].StartsWith("0x")) {
-                _from = (Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber));
-            } else {
+            if (s[1].StartsWith("0x"))
+            {
+                _from = Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber);
+            }
+            else
+            {
                 _from = Convert.ToInt32(s[1]);
             }
             _to = 0;
@@ -58,10 +62,10 @@ _to = Convert.ToInt32(s[2]);
         Console.WriteLine($"from {((_from & 0xFFF) << 14) | (_to & 0xFFF)} {_to} ");
 
     }
-public int Encode()
-{
-    return (0b1 << 24) | ((((_from >> 2) << 12) | (_to >>2)) & ((1 << 24) -1));
-}
+    public int Encode()
+    {
+        return (0b1 << 24) | ((((_from >> 2) << 12) | (_to >> 2)) & ((1 << 24) - 1));
+    }
 
 }
 
@@ -90,7 +94,7 @@ public class StringInput : IInstruction
     }
     public int Encode()
     {
-        return (int)((0b0101 << 24)| ( _size & ((1 << 24) - 1)));
+        return (int)((0b0101 << 24) | (_size & ((1 << 24) - 1)));
     }
 }
 
@@ -99,14 +103,21 @@ public class Debug : IInstruction
     private readonly int _value;
     public Debug(string[] s)
     {
-        if (s.Length == 1) {
+        if (s.Length == 1)
+        {
             _value = 0;
-        } else {
-            if (s[1].StartsWith("0x")) {
-                _value = (Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber));
-            } else {
-                _value = Convert.ToInt32(s[1]);}
-        
+        }
+        else
+        {
+            if (s[1].StartsWith("0x"))
+            {
+                _value = Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber);
+            }
+            else
+            {
+                _value = Convert.ToInt32(s[1]);
+            }
+
         }
     }
     public int Encode()
@@ -122,22 +133,18 @@ public class Pop : IInstruction
     {
         if (s.Length == 2)
         {
-            // foreach (var pp in s) Console.WriteLine($"++{pp}");
 
             if (s[1].StartsWith("0x"))
             {
-                _offset = (uint)(Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber));
+                _offset = (uint)Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber);
             }
             else
             {
                 _offset = Convert.ToUInt32(s[1]);
-                // Console.WriteLine($"____+{_offset}");
             }
         }
         else
         {
-            // Console.WriteLine(s.ToArray());
-            // foreach (var pp in s) Console.WriteLine(pp);
             _offset = 4;
         }
 
@@ -267,7 +274,7 @@ public class Stprint : IInstruction
 
             if (s[1].StartsWith("0x"))
             {
-                _offset = (Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber));
+                _offset = Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber);
             }
             else
             {
@@ -284,16 +291,13 @@ public class Stprint : IInstruction
 public class Call : IInstruction
 {
     private readonly int _offset;
-    public Call(string[] s, Dictionary<string, int[]> d, int first)
+    public Call(string[] s, Dictionary<string, int[]> d, int ln)
     {
-        
-        _offset = d[s[1]][1] - first;
-        // if (_offset < 0) _offset += 1;
-        // if (!first) {
-        //     _offset -= 2;
-        // }
+
+        _offset = d[s[1]][1] - ln;
+
         _offset *= 4;
-        // _offset &= ~3;
+
     }
     public int Encode()
     {
@@ -306,10 +310,13 @@ public class Return : IInstruction
     private readonly int _offset;
     public Return(string[] s)
     {
-        if (s.Length == 1){
+        if (s.Length == 1)
+        {
             _offset = 0;
-        } else {
-            _offset = Convert.ToInt32(s[1]) ;
+        }
+        else
+        {
+            _offset = Convert.ToInt32(s[1]);
         }
         _offset &= ~3;
     }
@@ -323,15 +330,10 @@ public class Return : IInstruction
 public class Goto : IInstruction
 {
     private readonly int _offset;
-    public Goto(string[] s, int ln, Dictionary<string, int[]> d, bool first)
+    public Goto(string[] s, int ln, Dictionary<string, int[]> d)
     {
-       
+
         _offset = d[s[1]][1] - ln;
-        // if (!first) {
-        //     _offset -= 2;
-        // }
-        // _offset-=1;
-        // Console.WriteLine($"goto offset {_offset}");
 
         _offset *= 4;
 
@@ -361,43 +363,34 @@ public class If : IInstruction
         {"mi", 0b1010},
         {"pl", 0b1011},
     };
-    public If(string[] s, int ln, Dictionary<string, int[]> d, bool first)
+    public If(string[] s, int ln, Dictionary<string, int[]> d)
     {
         var cond = s[0].Substring(2, 2);
-        // _offset = int.TryParse(s[1], out int result) ? result : (d[s[1]][1]  - ln);
 
 
         if (s[1].StartsWith("0x"))
         {
-            _offset = (Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber));
+            _offset = Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber);
         }
         else
         {
-            _offset = int.TryParse(s[1], out int result) ? result :  d[s[1]][1] - ln;
-            // if (_offset < 0 ) _offset --;
+            _offset = int.TryParse(s[1], out int result) ? result : d[s[1]][1] - ln;
         }
 
-        // if (cond == "mi") Console.WriteLine($"LIENNNNNNNNNNNNNNN {_offset}");
-// 
-        // if (cond == "ez") Console.WriteLine($"LeeeeeeeeeeeeeeIENNNNNNNNNNNNNNN {_offset}");
 
 
         _offset *= 4;
-       
-        // Console.WriteLine($"OFFEST: {_offset}");
+
         _code = IfCodes[cond];
         if (_code >= 8)
         { // unary if
             _code = _code & ~8;
             _opcode = 0b1001;
-            // binary = false; 
         }
         else
         { // binary if
             _opcode = 0b1000;
-            // binary = true;
         }
-        // Console.WriteLine(_code);
 
     }
     public int Encode()
@@ -406,70 +399,6 @@ public class If : IInstruction
     }
 }
 
-// public class If2 : IInstruction {
-//     private readonly int _opcode;
-//     private readonly int _code;
-//     private readonly int _offset;
-//     // private readonly bool binary;
-//     private Dictionary<string, int> IfCodes = new Dictionary<string, int> {
-//         {"eq", 0b0},
-//         {"ne", 0b1},
-//         {"lt", 0b10},
-//         {"gt", 0b11},
-//         {"le", 0b100},
-//         {"ge", 0b101},
-
-//         {"ez", 0b1000},
-//         {"nz", 0b1001},
-//         {"mi", 0b1010},
-//         {"pl", 0b1011},
-//     };
-//  public If2(string[] s, int ln, Dictionary<string, int[]> d, bool first)
-//     {
-//         var cond = s[0].Substring(2, 2);
-//         // _offset = int.TryParse(s[1], out int result) ? result : (d[s[1]][1]  - ln);
-
-
-//         if (s[1].StartsWith("0x"))
-//         {
-//             _offset = (Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber));
-//         }
-//         else
-//         {
-//             _offset = int.TryParse(s[1], out int result) ? result :  d[s[1]][1];
-//             // if (_offset < 0 ) _offset --;
-//         }
-
-//         if (cond == "mi") Console.WriteLine($"LIENNNNNNNNNNNNNNN {_offset}");
-//         if (cond == "ez") Console.WriteLine($"LeeeeeeeeeeeeeeIENNNNNNNNNNNNNNN {_offset}");
-
-
-// //  if (_offset > 0 ) _offset -= 1;
-//         // else _offset -= 2;
-//         // if (!first) {
-//         //     _offset -= 1;
-//         // }
-//         _offset *= 4;
-       
-//         // Console.WriteLine($"OFFEST: {_offset}");
-//         _code = IfCodes[cond];
-//         if (_code >= 8)
-//         { // unary if
-//             _code = _code & ~8;
-//             _opcode = 0b1001;
-//             // binary = false; 
-//         }
-//         else
-//         { // binary if
-//             _opcode = 0b1000;
-//             // binary = true;
-//         }
-//         Console.WriteLine(_code);
-//     }
-//     public int Encode() {
-//         return (_opcode << 28) | (_code << 25) | _offset & ((1 << 24) - 1);
-//     }
-// }
 
 public class Dup : IInstruction
 {
@@ -478,7 +407,7 @@ public class Dup : IInstruction
     {
         if (s[1].StartsWith("0x"))
         {
-            _offset = (Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber));
+            _offset = Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber);
         }
         else
         {
@@ -523,7 +452,7 @@ public class Print : IInstruction
         {
             if (s[1].StartsWith("0x"))
             {
-                _offset = (Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber));
+                _offset = Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber);
             }
             else
             {
@@ -534,8 +463,8 @@ public class Print : IInstruction
     }
     public int Encode()
     {
-        return (0b1101 << 28) | ((_offset << 2 | _fmt) & ((1<<28)-1)) ;
-  
+        return (0b1101 << 28) | ((_offset << 2 | _fmt) & ((1 << 28) - 1));
+
     }
 }
 
@@ -562,7 +491,7 @@ public class Push : IInstruction
         {
             if (s[1].StartsWith("0x"))
             {
-                _value = (Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber));
+                _value = Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber);
             }
             else
             {
@@ -570,7 +499,7 @@ public class Push : IInstruction
             }
         }
         _type = type;
-        
+
     }
     public int Encode()
     {
@@ -585,7 +514,7 @@ public class Push : IInstruction
 
 public class Stpush
 {
-    // private readonly Push[] _value;
+
     private readonly List<int> _value;
     public Stpush(string value)
     {
@@ -596,19 +525,19 @@ public class Stpush
         int index = 0;
         for (int i = 0; i < value.Length; i++)
         {
-            tmp |= (Convert.ToByte(value[i]) << (counter * 8));
+            tmp |= Convert.ToByte(value[i]) << (counter * 8);
             counter += 1;
             if (counter == 3 || i == value.Length - 1)
             {
                 if (i < value.Length - 1)
                 {
-                    tmp |= (0xF1 << 24);
+                    tmp |= 0xF1 << 24;
                 }
                 else
                 {
                     for (int j = counter; j < 3; j++)
                     {
-                        tmp |= (0x01 << (j * 8));
+                        tmp |= 0x01 << (j * 8);
                     }
                     tmp |= 0xF0 << 24;
                 }

@@ -8,19 +8,19 @@
     "net9.0": []
   },
   "packageFolders": {
-    "/home/msshen/.nuget/packages/": {}
+    "C:\\Users\\14236\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/mnt/c/Users/mungs/Desktop/vmas9/vmas9/vmas9.csproj",
+      "projectUniqueName": "C:\\Users\\14236\\Documents\\COSC 365\\AssemblerProject\\vmas9\\vmas9.csproj",
       "projectName": "vmas9",
-      "projectPath": "/mnt/c/Users/mungs/Desktop/vmas9/vmas9/vmas9.csproj",
-      "packagesPath": "/home/msshen/.nuget/packages/",
-      "outputPath": "/mnt/c/Users/mungs/Desktop/vmas9/vmas9/obj/",
+      "projectPath": "C:\\Users\\14236\\Documents\\COSC 365\\AssemblerProject\\vmas9\\vmas9.csproj",
+      "packagesPath": "C:\\Users\\14236\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\14236\\Documents\\COSC 365\\AssemblerProject\\vmas9\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/home/msshen/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\14236\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net9.0"
@@ -44,7 +44,7 @@
         "auditLevel": "low",
         "auditMode": "direct"
       },
-      "SdkAnalysisLevel": "9.0.200"
+      "SdkAnalysisLevel": "9.0.100"
     },
     "frameworks": {
       "net9.0": {
@@ -65,7 +65,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/share/dotnet/sdk/9.0.200/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.102/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
