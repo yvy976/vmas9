@@ -59,12 +59,24 @@ public class Swap : IInstruction
             _to = 0;
         }
 
-        Console.WriteLine($"from {((_from & 0xFFF) << 14) | (_to & 0xFFF)} {_to} ");
+        _from >>= 2;
+        _to >>= 2;
+        if (_from < 0)
+        {
+            _from += 1 << 12;
+        }
+        _from &= 0xFFF;
+        if (_to < 0)
+        {
+            _to += 1 << 12;
+        }
+        _to &= 0xFFF;
 
     }
     public int Encode()
     {
-        return (0b1 << 24) | ((((_from >> 2) << 12) | (_to >> 2)) & ((1 << 24) - 1));
+        // return (0b1 << 24) | ((((_from >> 2) << 12) | (_to >> 2)) & ((1 << 24) - 1));
+        return (0b1 << 24) | (_from << 12) | _to;
     }
 
 }
@@ -90,7 +102,22 @@ public class StringInput : IInstruction
     private readonly uint _size;
     public StringInput(string[] s)
     {
-        _size = s.Length == 2 ? ((1 << 24) - 1) & Convert.ToUInt32(s[1]) : ((1 << 24) - 1);
+        if (s.Length == 1)
+        {
+            _size = ((1 << 24) - 1);
+        }
+        else
+        {
+            if (s[1].StartsWith("0x"))
+            {
+                _size = (uint)Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber);
+            }
+            else
+            {
+                _size = ((1 << 24) - 1) & Convert.ToUInt32(s[1]);
+
+            }
+        }
     }
     public int Encode()
     {
@@ -271,7 +298,6 @@ public class Stprint : IInstruction
         }
         else
         {
-
             if (s[1].StartsWith("0x"))
             {
                 _offset = Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber);
@@ -284,17 +310,17 @@ public class Stprint : IInstruction
     }
     public int Encode()
     {
-        return (0b100 << 28) | _offset;
+        return (0b100 << 28) | (_offset & ((1 << 28) - 1));
     }
 }
 
 public class Call : IInstruction
 {
     private readonly int _offset;
-    public Call(string[] s, Dictionary<string, int[]> d, int ln)
+    public Call(string[] s, Dictionary<string, int> d, int ln)
     {
 
-        _offset = d[s[1]][1] - ln;
+        _offset = d[s[1]] - ln;
 
         _offset *= 4;
 
@@ -330,10 +356,10 @@ public class Return : IInstruction
 public class Goto : IInstruction
 {
     private readonly int _offset;
-    public Goto(string[] s, int ln, Dictionary<string, int[]> d)
+    public Goto(string[] s, int ln, Dictionary<string, int> d)
     {
 
-        _offset = d[s[1]][1] - ln;
+        _offset = d[s[1]] - ln;
 
         _offset *= 4;
 
@@ -363,7 +389,7 @@ public class If : IInstruction
         {"mi", 0b1010},
         {"pl", 0b1011},
     };
-    public If(string[] s, int ln, Dictionary<string, int[]> d)
+    public If(string[] s, int ln, Dictionary<string, int> d)
     {
         var cond = s[0].Substring(2, 2);
 
@@ -374,10 +400,8 @@ public class If : IInstruction
         }
         else
         {
-            _offset = int.TryParse(s[1], out int result) ? result : d[s[1]][1] - ln;
+            _offset = int.TryParse(s[1], out int result) ? result : d[s[1]] - ln;
         }
-
-
 
         _offset *= 4;
 
@@ -405,13 +429,19 @@ public class Dup : IInstruction
     private readonly int _offset;
     public Dup(string[] s)
     {
-        if (s[1].StartsWith("0x"))
+        if (s.Length == 1)
         {
-            _offset = Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber);
-        }
-        else
+            _offset = 0;
+        } else
         {
-            _offset = Convert.ToInt32(s[1]);
+            if (s[1].StartsWith("0x"))
+            {
+                _offset = Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber);
+            }
+            else
+            {
+                _offset = Convert.ToInt32(s[1]);
+            }
         }
         _offset &= ~3;
     }
@@ -480,7 +510,7 @@ public class Push : IInstruction
 {
     private readonly int _value;
     private readonly int _type;
-    public Push(string[] s, int type)
+    public Push(string[] s, int type, Dictionary<string, int> d)
     {
 
         if (s.Length == 1)
@@ -492,6 +522,8 @@ public class Push : IInstruction
             if (s[1].StartsWith("0x"))
             {
                 _value = Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber);
+            } else if (d.ContainsKey(s[1])) {
+                _value = d[s[1]];
             }
             else
             {

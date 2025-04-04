@@ -16,7 +16,7 @@ public class Pass1
 {
     //Dictionary keyed on label name, values at int[] index [1] and [2] are relative and absolute offset respectively. Value at [0]
     //is 0 by default.
-    public Dictionary<string, int[]> _labels;
+    public Dictionary<string, int> _labels;
 
     //List containing the entire line contents of each instruction
     private List<string[]> _instrLine;
@@ -24,15 +24,13 @@ public class Pass1
     //List of IInstruction class instances which will need their encode method called
     private List<IInstruction> _instructions;
 
-    private int _instruction_mem_location;
 
     public Pass1(string filename, string out_filename)
     {
         //Initializing fields when constructor is called
-        _labels = new Dictionary<string, int[]> { };
+        _labels = new Dictionary<string, int> { };
         _instructions = new List<IInstruction> { };
         _instrLine = new List<string[]> { };
-        _instruction_mem_location = 0;
         int lineNumber = 0;
 
         // String for each line of the file to be read into
@@ -63,10 +61,7 @@ public class Pass1
             if (line.Trim().EndsWith(':'))
             {
                 var label = line[0..(line.Length - 1)];     //parse label to remove ':'
-                _labels.Add(label, new int[3]);
-                _labels[label][0] = 0;
-                _labels[label][1] = lineNumber;
-                _labels[label][2] = lineNumber;
+                _labels.Add(label, lineNumber);
                 _instrLine.Add(line.Split(" ", StringSplitOptions.RemoveEmptyEntries));
                 continue;
             }
@@ -108,10 +103,8 @@ public class Pass1
         }
         sr.Close();
 
-        bool first = true;
-        bool first2 = true;
         int prog_counter = 0;
-        lineNumber = 0;
+       
 
         //Loop through all the instruction lines and add a new instance of the associated instruction class to IInstruction list while keeping track
         //of the program counter to handle offsets correctly.
@@ -187,30 +180,19 @@ public class Pass1
                     _instructions.Add(new Return(_instrLine[s]));
                     break;
                 case "goto":
-                    _instructions.Add(new Goto(_instrLine[s], prog_counter, _labels /*, first2*/));
-                    first2 = false;
+                    _instructions.Add(new Goto(_instrLine[s], prog_counter, _labels));
                     break;
-
                 case "ifeq":
                 case "ifne":
                 case "iflt":
                 case "ifgt":
                 case "ifle":
                 case "ifge":
-                    // _instructions.Add(new If(_instrLine[s], prog_counter, _labels, first2));
-                    // first2 = false;
-
-                    // break;
                 case "ifez":
                 case "ifnz":
                 case "ifmi":
                 case "ifpl":
-                    _instructions.Add(new If(_instrLine[s], prog_counter, _labels /*,first*/));
-
-                    // Console.WriteLine(prog_counter);
-                    first2 = false;
-                    // Console.WriteLine(_labels["NotEqual20"][1]);
-
+                    _instructions.Add(new If(_instrLine[s], prog_counter, _labels));
                     break;
                 case "dup":
                     _instructions.Add(new Dup(_instrLine[s]));
@@ -225,12 +207,11 @@ public class Pass1
                     _instructions.Add(new Dump());
                     break;
                 case "push":
-                    _instructions.Add(new Push(_instrLine[s], 0));
+                    _instructions.Add(new Push(_instrLine[s], 0, _labels));
                     break;
                 case "nop":
                     _instructions.Add(new Nop());
                     break;
-                
                 //Handle additional stpush instructions and program counter appropriately, taking endian-ness into account
                 case "stpush":
                     Stpush p = new Stpush(_instrLine[s][1]);
@@ -240,7 +221,7 @@ public class Pass1
                     {
                         string[] k = new string[2];
                         k[1] = additional_stpush_ins[i].ToString();
-                        _instructions.Add(new Push(k, 1));
+                        _instructions.Add(new Push(k, 1, _labels));
                     }
                     break;
                 default:
@@ -248,14 +229,13 @@ public class Pass1
                     break;
 
             }
-            lineNumber++;
+     
             prog_counter += pc_increment_value;
         }
 
         //Add Nop to end of _instructions to pad out multiple of 4 instructions appropriately
         for (int i = _instructions.Count; i < (_instructions.Count + 3 & -4); i++) _instructions.Add(new Nop());
 
-        Console.WriteLine($"len of mem {_instructions.Count}");
 
         //Throw exception if there are no instructions in the provided file
         if (_instructions.Count == 0){

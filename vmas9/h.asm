@@ -1,56 +1,31 @@
-# swap.asm
-# Test swap with negative offsets
+# sum.asm
+# Test the virtual machine by calculating a running sum.
 # Stephen Marz
 # COSC365: Programming Languages and Systems
 # 3-February-2025
 
+# This will be our running total
+push        0
+
 main:
-    push  10
-    push  20
-    push  50
-    # 50 <---- sp
-    # 20  +4
-    # 10  +8
-    pop   12
-    # 50  -12
-    # 20  -8
-    # 10  -4 
-    #     <---- sp
-    push  40
-    # 50  -8
-    # 20  -4
-    # 40  <---- sp
-    swap  -4   # Swap 20/40
-    # 50  -8
-    # 40  -4
-    # 20  <---- sp
-    push  20
-    ifne  NotEqual20
-    pop   # Pop off 20, which was the testing element.
-    # 50  -8
-    # 40  -4
-    # 20  <---- sp
-    swap  -8 -4  # Swap 50/40
-    # 40  -8
-    # 50  -4
-    # 20  <---- sp
-    swap  -4 # Swap 20/50
-    # 40  -8
-    # 20  -4
-    # 50  <---- sp
-    push    50
-    ifne    NotEqual50
+    stpush  "Value to add (0 to quit): "
+    stprint
+    # Easiest way to know how much to pop is to
+    # count in threes and multiply by 4. Above,
+    # there are 9 groups of 3, which 9 * 4 = 36.
+    pop     36
+    input
+    # If we get 0, go to quit
+    ifez    quit
+    add
+    goto    main
+quit:
+    # Remove the last input, which will be 0 to get here
     pop
-    stpush  "SUCCESS! No errors in swap detected.\n"
+    stpush "Sum = "
     stprint
+    # Pop off Sum =
+    pop     8
+    # Print the running total
+    print
     exit
-
-NotEqual50:
-    stpush  "ERROR: 50 != 50\n"
-    stprint
-    exit    50
-
-NotEqual20:
-    stpush  "ERROR: 20 != 20\n"
-    stprint
-    exit    20
