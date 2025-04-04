@@ -1,45 +1,56 @@
-# for.asm
-# Repeatedly take input and iterate using a for loop
+# swap.asm
+# Test swap with negative offsets
 # Stephen Marz
 # COSC365: Programming Languages and Systems
 # 3-February-2025
 
 main:
-    stpush  "How many iterations? "
+    push  10
+    push  20
+    push  50
+    # 50 <---- sp
+    # 20  +4
+    # 10  +8
+    pop   12
+    # 50  -12
+    # 20  -8
+    # 10  -4 
+    #     <---- sp
+    push  40
+    # 50  -8
+    # 20  -4
+    # 40  <---- sp
+    swap  -4   # Swap 20/40
+    # 50  -8
+    # 40  -4
+    # 20  <---- sp
+    push  20
+    ifne  NotEqual20
+    pop   # Pop off 20, which was the testing element.
+    # 50  -8
+    # 40  -4
+    # 20  <---- sp
+    swap  -8 -4  # Swap 50/40
+    # 40  -8
+    # 50  -4
+    # 20  <---- sp
+    swap  -4 # Swap 20/50
+    # 40  -8
+    # 20  -4
+    # 50  <---- sp
+    push    50
+    ifne    NotEqual50
+    pop
+    stpush  "SUCCESS! No errors in swap detected.\n"
     stprint
-    pop     0xbeec
-    input
-    ifez    Exit
-    ifmi    NegError
-    # Push an iterator i = 1
-    push    1
-
-TopLoop:
-    stpush  "i = "
-    stprint
-    pop     8
-    # Print the iteration we are on
-    print
-    # Push 1 so that we can add it to the iterator
-    push    1
-    # Add 1 to the iterator. This pops two operands
-    # off the stack and pushes the result, so the stack
-    # is pointing to the result.
-    add
-    # ifle looks at the top two values on the stack and
-    # compares them. The target is first (left) and the
-    # iteration is second (right), so this is
-    # target >= iteration
-    ifge    TopLoop
-
-BottomLoop:
-    goto    Exit
-
-NegError:
-    stpush  "ERROR: You gave a negative number!\n"
-    stprint
-    pop     0xbeec
-    goto    main
-
-Exit:
     exit
+
+NotEqual50:
+    stpush  "ERROR: 50 != 50\n"
+    stprint
+    exit    50
+
+NotEqual20:
+    stpush  "ERROR: 20 != 20\n"
+    stprint
+    exit    20

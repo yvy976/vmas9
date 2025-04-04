@@ -55,7 +55,7 @@ public class Pass1
             {
                 var label = line[0..(line.Length - 1)];
                 _labels.Add(label, new int[3]);
-                Console.WriteLine($"{label} {lineNumber}");
+                // Console.WriteLine($"{label} {lineNumber}");
                 _labels[label][0] = 0;
                 _labels[label][1] = lineNumber;
                 _labels[label][2] = lineNumber;
@@ -73,7 +73,7 @@ public class Pass1
                     var lx = line.Split(" ", 2, StringSplitOptions.RemoveEmptyEntries);
                     string value = lx[1][1..(lx[1].Length-1)];
                
-                    Console.WriteLine($"!{value}! {value.Length}");
+                    // Console.WriteLine($"!{value}! {value.Length}");
 
 
                     value = value.Replace("\\\"", "`");
@@ -94,7 +94,7 @@ public class Pass1
 
                 
                 if (!alreadyAdd) lineNumber++;
-                Console.WriteLine($"{x[0]} {lineNumber}");
+                // Console.WriteLine($"{x[0]} {lineNumber}");
 
             }
 
@@ -121,7 +121,7 @@ public class Pass1
                     break;
                 case "swap":
                     _instructions.Add(new Swap(_instrLine[s]));
-                    Console.WriteLine($"{prog_counter} {s}");
+                    // Console.WriteLine($"{prog_counter} {s}");
                     break;
                 case "input":
                     _instructions.Add(new Input());
@@ -204,7 +204,7 @@ public class Pass1
                 case "ifpl":
                     _instructions.Add(new If(_instrLine[s], prog_counter, _labels,first));
 
-                    Console.WriteLine(prog_counter);
+                    // Console.WriteLine(prog_counter);
                     first2 = false;
                     // Console.WriteLine(_labels["NotEqual20"][1]);
 
@@ -213,6 +213,9 @@ public class Pass1
                     _instructions.Add(new Dup(_instrLine[s]));
                     break;
                 case "print":
+                case "printo":
+                case "printh":
+                case "printb":
                     _instructions.Add(new Print(_instrLine[s]));
                     break;
                 case "dump":
@@ -227,10 +230,6 @@ public class Pass1
                     _instructions.Add(new Nop());
                     break;
                 case "stpush":
-                    // _instructions.Add(new Stpush(s, 0));
-                    // string value = s[1].Trim().Split(" ", 2, StringSplitOptions.RemoveEmptyEntries)[1];
-
-                    
                     Stpush p = new Stpush(_instrLine[s][1]);
 
                     var pp = p.Encode();
@@ -246,24 +245,13 @@ public class Pass1
 
                     break;
                 default:
-                    isLabel = true;
                     sub = 0;
-                    // _labels[_instrLine[s][0]] = prog_counter;
                     break;
 
 
             }
             lineNumber++;
 
-            // foreach (var key in _labels.Keys.ToList())  // Convert Keys to a List to avoid modification issues
-            // {
-            //     _labels[key][1] = _labels[key][2] - (prog_counter);
-
-                // Console.WriteLine($"{key} k0={_labels[key][0]} k1={_labels[key][1]} k2={_labels[key][2]} {s} {_instrLine[s][0]} progcounter= {prog_counter} reloffset = {_labels[key][2] - prog_counter}");
-                // Console.WriteLine($"{key} k0={_labels[key][0]} k1={_labels[key][1]} k2={_labels[key][2]} {s} {_instrLine[s][0]} progcounter= {prog_counter} reloffset = {_labels[key][2] - prog_counter}");
-
-
-            // }
             prog_counter += sub;
 
 

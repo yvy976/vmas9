@@ -26,12 +26,27 @@ public class Swap : IInstruction
     {
         if (s.Length == 3)
         {
-            _from = Convert.ToInt32(s[1]);
-            _to = Convert.ToInt32(s[2]);
+            if (s[1].StartsWith("0x")) {
+                _from = (Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber));
+            } else {
+                _from = Convert.ToInt32(s[1]);
+            }
+
+            if (s[2].StartsWith("0x")) {
+                _to = (Int32.Parse(s[2][2..], System.Globalization.NumberStyles.HexNumber));
+            } else {
+_to = Convert.ToInt32(s[2]);
+            }
+            
+            
         }
         else if (s.Length == 2)
         {
-            _from = Convert.ToInt32(s[1]);
+            if (s[1].StartsWith("0x")) {
+                _from = (Int32.Parse(s[1][2..], System.Globalization.NumberStyles.HexNumber));
+            } else {
+                _from = Convert.ToInt32(s[1]);
+            }
             _to = 0;
         }
         else
@@ -40,13 +55,13 @@ public class Swap : IInstruction
             _to = 0;
         }
 
-        Console.WriteLine($"from {((_from & 0xFFF) << 12)} {_to} ");
+        Console.WriteLine($"from {((_from & 0xFFF) << 14) | (_to & 0xFFF)} {_to} ");
 
     }
-    public int Encode()
-    {
-        return (0b1 << 24) | ((_from & 0xFFF) << 12) | (_to & 0xFFF);
-    }
+public int Encode()
+{
+    return (0b1 << 24) | ((((_from >> 2) << 12) | (_to >>2)) & ((1 << 24) -1));
+}
 
 }
 
@@ -122,7 +137,7 @@ public class Pop : IInstruction
         else
         {
             // Console.WriteLine(s.ToArray());
-            foreach (var pp in s) Console.WriteLine(pp);
+            // foreach (var pp in s) Console.WriteLine(pp);
             _offset = 4;
         }
 
@@ -316,7 +331,7 @@ public class Goto : IInstruction
         //     _offset -= 2;
         // }
         // _offset-=1;
-        Console.WriteLine($"goto offset {_offset}");
+        // Console.WriteLine($"goto offset {_offset}");
 
         _offset *= 4;
 
@@ -362,8 +377,9 @@ public class If : IInstruction
             // if (_offset < 0 ) _offset --;
         }
 
-        if (cond == "mi") Console.WriteLine($"LIENNNNNNNNNNNNNNN {_offset}");
-        if (cond == "ez") Console.WriteLine($"LeeeeeeeeeeeeeeIENNNNNNNNNNNNNNN {_offset}");
+        // if (cond == "mi") Console.WriteLine($"LIENNNNNNNNNNNNNNN {_offset}");
+// 
+        // if (cond == "ez") Console.WriteLine($"LeeeeeeeeeeeeeeIENNNNNNNNNNNNNNN {_offset}");
 
 
         _offset *= 4;
@@ -381,7 +397,7 @@ public class If : IInstruction
             _opcode = 0b1000;
             // binary = true;
         }
-        Console.WriteLine(_code);
+        // Console.WriteLine(_code);
 
     }
     public int Encode()
@@ -518,7 +534,8 @@ public class Print : IInstruction
     }
     public int Encode()
     {
-        return (0b1101 << 28) | (_offset & ((1<<28)-1)) | _fmt;
+        return (0b1101 << 28) | ((_offset << 2 | _fmt) & ((1<<28)-1)) ;
+  
     }
 }
 
@@ -572,7 +589,6 @@ public class Stpush
     private readonly List<int> _value;
     public Stpush(string value)
     {
-        // _value = new Push[(int)Math.Ceiling((double) (value.Length / 3) )+1];
         _value = new List<int> { };
 
         int tmp = 0;
@@ -596,9 +612,7 @@ public class Stpush
                     }
                     tmp |= 0xF0 << 24;
                 }
-                // Push p = new Push(tmp, 1);
 
-                // _value[index] = p;
                 _value.Add(tmp);
                 index += 1;
 
@@ -608,9 +622,7 @@ public class Stpush
 
         }
     }
-    // public Push[] Encode() {
-    //     return _value;
-    // }
+
 
     public List<int> Encode()
     {
