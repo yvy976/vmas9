@@ -269,14 +269,14 @@ public class Stprint : IInstruction
 public class Call : IInstruction
 {
     private readonly int _offset;
-    public Call(string[] s, Dictionary<string, int[]> d, bool first)
+    public Call(string[] s, Dictionary<string, int[]> d, int first)
     {
         
-        _offset = d[s[1]][1] ;
+        _offset = d[s[1]][1] - first;
         // if (_offset < 0) _offset += 1;
-        if (!first) {
-            _offset -= 2;
-        }
+        // if (!first) {
+        //     _offset -= 2;
+        // }
         _offset *= 4;
         // _offset &= ~3;
     }
@@ -311,7 +311,7 @@ public class Goto : IInstruction
     public Goto(string[] s, int ln, Dictionary<string, int[]> d, bool first)
     {
        
-        _offset = d[s[1]][1] ;
+        _offset = d[s[1]][1] - ln;
         // if (!first) {
         //     _offset -= 2;
         // }
@@ -323,7 +323,7 @@ public class Goto : IInstruction
     }
     public int Encode()
     {
-        return (0b111 << 28) | _offset & ((1 << 28) - 1);
+        return (0b111 << 28) | (_offset & ((1 << 28) - 1));
     }
 }
 
@@ -358,7 +358,7 @@ public class If : IInstruction
         }
         else
         {
-            _offset = int.TryParse(s[1], out int result) ? result :  d[s[1]][1];
+            _offset = int.TryParse(s[1], out int result) ? result :  d[s[1]][1] - ln;
             // if (_offset < 0 ) _offset --;
         }
 
@@ -366,11 +366,6 @@ public class If : IInstruction
         if (cond == "ez") Console.WriteLine($"LeeeeeeeeeeeeeeIENNNNNNNNNNNNNNN {_offset}");
 
 
-//  if (_offset > 0 ) _offset -= 1;
-        // else _offset -= 2;
-        // if (!first) {
-        //     _offset -= 2;
-        // }
         _offset *= 4;
        
         // Console.WriteLine($"OFFEST: {_offset}");

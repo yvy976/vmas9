@@ -32,7 +32,7 @@ public class Pass1
         _instrLine = new List<string[]> { };
         _label_mem_location = 0;
         _instruction_mem_location = 0;
-        int lineNumber = 1;
+        int lineNumber = 0;
         string? line;
         StreamReader sr;
         try
@@ -55,21 +55,26 @@ public class Pass1
             {
                 var label = line[0..(line.Length - 1)];
                 _labels.Add(label, new int[3]);
+                Console.WriteLine($"{label} {lineNumber}");
                 _labels[label][0] = 0;
                 _labels[label][1] = lineNumber;
                 _labels[label][2] = lineNumber;
                 _label_mem_location += 4;
                 _instrLine.Add(line.Split(" ", StringSplitOptions.RemoveEmptyEntries));
+                continue;
 
             }
             else
             {
                 var x = line.Split(" ", StringSplitOptions.RemoveEmptyEntries);
-                _instrLine.Add(x);
+                
                 if (x[0] == "stpush")
                 {
-                    var _tmp = x.Skip(1).ToArray();
-                    string value = String.Join(" ", _tmp);
+                    var lx = line.Split(" ", 2, StringSplitOptions.RemoveEmptyEntries);
+                    string value = lx[1][1..(lx[1].Length-1)];
+               
+                    Console.WriteLine($"!{value}! {value.Length}");
+
 
                     value = value.Replace("\\\"", "`");
                     value = value.Replace("\"", "");
@@ -77,10 +82,19 @@ public class Pass1
 
                     value = value.Replace("\\n", "\n");
                     value = value.Replace("\\\\", "\\");
-                    lineNumber += (int)Math.Ceiling((double)(value.Length / 3));
+                    var xe = (int)Math.Ceiling(value.Length / 3.0);
+                    // if (xe == 0) lineNumber += 1;
+                    lineNumber += xe;
                     alreadyAdd = true;
+                    x[1] = value;
+                  
+
                 }
+                _instrLine.Add(x);
+
+                
                 if (!alreadyAdd) lineNumber++;
+                Console.WriteLine($"{x[0]} {lineNumber}");
 
             }
 
@@ -164,7 +178,7 @@ public class Pass1
                     _instructions.Add(new Stprint(_instrLine[s]));
                     break;
                 case "call":
-                    _instructions.Add(new Call(_instrLine[s], _labels, first2));
+                    _instructions.Add(new Call(_instrLine[s], _labels, prog_counter));
                     break;
                 case "return":
                     _instructions.Add(new Return(_instrLine[s]));
@@ -216,20 +230,8 @@ public class Pass1
                     // _instructions.Add(new Stpush(s, 0));
                     // string value = s[1].Trim().Split(" ", 2, StringSplitOptions.RemoveEmptyEntries)[1];
 
-                    var _tmp = _instrLine[s].Skip(1).ToArray();
-                    string value = String.Join(" ", _tmp);
-                    // value += " ";
-                    // Console.WriteLine(_tmp.ToString());
-
-
-
-                    value = value.Replace("\\\"", "`");
-                    value = value.Replace("\"", "");
-                    value = value.Replace("`", "\"");
-
-                    value = value.Replace("\\n", "\n");
-                    value = value.Replace("\\\\", "\\");
-                    Stpush p = new Stpush(value);
+                    
+                    Stpush p = new Stpush(_instrLine[s][1]);
 
                     var pp = p.Encode();
                     sub = pp.Count;
@@ -253,14 +255,15 @@ public class Pass1
             }
             lineNumber++;
 
-            foreach (var key in _labels.Keys.ToList())  // Convert Keys to a List to avoid modification issues
-            {
-                _labels[key][1] = _labels[key][2] - (prog_counter);
+            // foreach (var key in _labels.Keys.ToList())  // Convert Keys to a List to avoid modification issues
+            // {
+            //     _labels[key][1] = _labels[key][2] - (prog_counter);
 
-                Console.WriteLine($"{key} k0={_labels[key][0]} k1={_labels[key][1]} k2={_labels[key][2]} {s} {_instrLine[s][0]} progcounter= {prog_counter} reloffset = {_labels[key][2] - prog_counter}");
+                // Console.WriteLine($"{key} k0={_labels[key][0]} k1={_labels[key][1]} k2={_labels[key][2]} {s} {_instrLine[s][0]} progcounter= {prog_counter} reloffset = {_labels[key][2] - prog_counter}");
+                // Console.WriteLine($"{key} k0={_labels[key][0]} k1={_labels[key][1]} k2={_labels[key][2]} {s} {_instrLine[s][0]} progcounter= {prog_counter} reloffset = {_labels[key][2] - prog_counter}");
 
 
-            }
+            // }
             prog_counter += sub;
 
 

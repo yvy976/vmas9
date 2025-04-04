@@ -1,31 +1,45 @@
-# sum.asm
-# Test the virtual machine by calculating a running sum.
+# for.asm
+# Repeatedly take input and iterate using a for loop
 # Stephen Marz
 # COSC365: Programming Languages and Systems
 # 3-February-2025
 
-# This will be our running total
-push        0
-
 main:
-    stpush  "Value to add (0 to quit): "
+    stpush  "How many iterations? "
     stprint
-    # Easiest way to know how much to pop is to
-    # count in threes and multiply by 4. Above,
-    # there are 9 groups of 3, which 9 * 4 = 36.
-    pop     36
+    pop     0xbeec
     input
-    # If we get 0, go to quit
-    ifez    quit
-    add
-    goto    main
-quit:
-    # Remove the last input, which will be 0 to get here
-    pop
-    stpush "Sum = "
+    ifez    Exit
+    ifmi    NegError
+    # Push an iterator i = 1
+    push    1
+
+TopLoop:
+    stpush  "i = "
     stprint
-    # Pop off Sum =
     pop     8
-    # Print the running total
+    # Print the iteration we are on
     print
+    # Push 1 so that we can add it to the iterator
+    push    1
+    # Add 1 to the iterator. This pops two operands
+    # off the stack and pushes the result, so the stack
+    # is pointing to the result.
+    add
+    # ifle looks at the top two values on the stack and
+    # compares them. The target is first (left) and the
+    # iteration is second (right), so this is
+    # target >= iteration
+    ifge    TopLoop
+
+BottomLoop:
+    goto    Exit
+
+NegError:
+    stpush  "ERROR: You gave a negative number!\n"
+    stprint
+    pop     0xbeec
+    goto    main
+
+Exit:
     exit
