@@ -1,31 +1,35 @@
-# sum.asm
-# Test the virtual machine by calculating a running sum.
+# abs.asm
+# Absolute value tester
 # Stephen Marz
 # COSC365: Programming Languages and Systems
 # 3-February-2025
 
-# This will be our running total
-push        0
-
 main:
-    stpush  "Value to add (0 to quit): "
+    goto StartAbs
+    # These instructions should never be executed
+    push 1
+    push 2
+    push 3
+    push 4
+# Starting point
+StartAbs:
+    stpush "Enter integer value: "
     stprint
-    # Easiest way to know how much to pop is to
-    # count in threes and multiply by 4. Above,
-    # there are 9 groups of 3, which 9 * 4 = 36.
-    pop     36
+    # We can use a large offset to clear the stack since it will stop
+    # at the bottom of the stack
+    pop  0xbeec
+    # Input an integer value
     input
-    # If we get 0, go to quit
-    ifez    quit
-    add
-    goto    main
-quit:
-    # Remove the last input, which will be 0 to get here
-    pop
-    stpush "Sum = "
+    # If the value is positive or 0, jump to Out
+    ifpl    Out
+    # If we get here, the value is negative, so negate it
+    neg
+Out:
+    stpush "Absolute value = "
     stprint
-    # Pop off Sum =
-    pop     8
-    # Print the running total
-    print
+    # We have to be accurate here since the value to print is just above it.
+    # 24 = [Abs] [olu] [te ] [val] [ue ] [= ]  (6x4 = 24)
+    # We can also pop off the value and do print, but this demonstrates using
+    # print's offset.
+    print 24
     exit

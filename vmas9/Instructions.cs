@@ -490,10 +490,11 @@ public class Print : IInstruction
             }
         }
 
+
     }
     public int Encode()
     {
-        return (0b1101 << 28) | ((_offset << 2 | _fmt) & ((1 << 28) - 1));
+        return (0b1101 << 28) | ((_offset | _fmt) & ((1 << 28)-1));
 
     }
 }
