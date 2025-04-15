@@ -36,8 +36,8 @@ quit:
     # Remove the last input, which will be 0 to get here
     pop
     # Make sure we have a value, otherwise we will get divide by 0
-    ifez out
-    stpush   "Avg = "
+    ifez    out
+    stpush "Avg = "
     stprint
     # Pop off Avg =
     pop     8

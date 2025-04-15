@@ -15,7 +15,7 @@ main:
     # 50  -12
     # 20  -8
     # 10  -4 
-    #     <---- sp
+    #     <---- sp 
     push  40
     # 50  -8
     # 20  -4
@@ -25,17 +25,20 @@ main:
     # 40  -4
     # 20  <---- sp
     push  20
+    # 50  -4
+    # 20  <---- sp
+    # 20  +4
     ifne  NotEqual20
     pop   # Pop off 20, which was the testing element.
     # 50  -8
-    # 40  -4
+    # 20  -4
     # 20  <---- sp
-    swap  -8 -4  # Swap 50/40
-    # 40  -8
+    swap  -8 -4  # Swap 50/20
+    # 20  -8
     # 50  -4
     # 20  <---- sp
     swap  -4 # Swap 20/50
-    # 40  -8
+    # 20  -8
     # 20  -4
     # 50  <---- sp
     push    50
