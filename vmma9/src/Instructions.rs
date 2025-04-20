@@ -9,8 +9,8 @@ fn reverse(value: i32) -> i32 {
         + (((value >> 24) & 0xFF) << 0)
 }
 pub fn Exit(instruction: i32) {
-    let code = reverse(instruction) & 0xF;
-    // println!("exit {}", code);
+    let code = reverse(instruction) & 0xFF;
+    println!("exit {}", code);
     // exit(code);
 }
 
@@ -44,6 +44,7 @@ pub fn Input(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
     stdin().read_line(&mut value);
     // value = value.trim();
     let ivalue: i32 = value.trim().parse::<i32>().expect("blah");
+    // println!("value is {}", ivalue);
     Push(
         reverse((0b1111 << 28) | ivalue & ((1 << 28) - 1)),
         stack,
@@ -51,6 +52,7 @@ pub fn Input(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
         len,
         &mut false,
     );
+    // println!("input {}", *sp);
 }
 pub fn Stinput(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
     let size = reverse(instruction) & 0x0FFFFFFF;
@@ -80,17 +82,30 @@ pub fn Pop(instruction: i32, sp: &mut usize, len: &mut u32) {
     if offset >= *len * 4 {
         offset = (*len) * 4;
     }
-
+    // *len -= (offset/4);
     *sp += (offset / 4) as usize;
     // println!("pop {} {} {:x}", offset, *sp, instruction);
 }
 
 pub fn Add(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut left = reverse(stack[*sp+1]) & 0x0FFFFFFF;
+
     Pop(0x4000010, sp, len);
-    let left = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0, sp, len);
-    let value = left + right;
+    Pop(0x4000010, sp, len);
+    if left & 0x8000000 != 0 {
+        left -= 0x10000000;
+    }
+    if right & 0x8000000 != 0 {
+        right -= 0x10000000;
+    }
+    let mut value = left + right;
+
+    println!("{} {:x} {}", left, right, value);
+    //     if value & 0x8000000 != 0 {
+    //     value -= 0x10000000;
+    // }
+
     Push(
         reverse((0b1111 << 28) | value & ((1 << 28) - 1)),
         stack,
@@ -99,17 +114,20 @@ pub fn Add(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
         &mut false,
     );
 
-    // println!(
-    //     "add {} {:x}",
-    //     value,
-    //     (0b1111 << 28) | value & ((1 << 28) - 1)
-    // );
+
 }
 pub fn Sub(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut left = reverse(stack[*sp+1]) & 0x0FFFFFFF;
+
     Pop(0x4000010, sp, len);
-    let left = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0, sp, len);
+    Pop(0x4000010, sp, len);
+    if left & 0x8000000 != 0 {
+        left -= 0x10000000;
+    }
+    if right & 0x8000000 != 0 {
+        right -= 0x10000000;
+    }
     let value = left - right;
     Push(
         reverse((0b1111 << 28) | value & ((1 << 28) - 1)),
@@ -121,11 +139,19 @@ pub fn Sub(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
     // println!("sub {} left: {} right: {}", value, left, right);
 }
 pub fn Mul(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut left = reverse(stack[*sp+1]) & 0x0FFFFFFF;
+
     Pop(0x4000010, sp, len);
-    let left = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0, sp, len);
+    Pop(0x4000010, sp, len);
+    if left & 0x8000000 != 0 {
+        left -= 0x10000000;
+    }
+    if right & 0x8000000 != 0 {
+        right -= 0x10000000;
+    }
     let value = left * right;
+    println!("mult {} {}", left, right);
     Push(
         reverse((0b1111 << 28) | value & ((1 << 28) - 1)),
         stack,
@@ -135,11 +161,20 @@ pub fn Mul(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
     );
 }
 pub fn Div(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut left = reverse(stack[*sp+1]) & 0x0FFFFFFF;
+
     Pop(0x4000010, sp, len);
-    let left = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0, sp, len);
+    Pop(0x4000010, sp, len);
+    if left & 0x8000000 != 0 {
+        left -= 0x10000000;
+    }
+    if right & 0x8000000 != 0 {
+        right -= 0x10000000;
+    }
     let value = left / right;
+
+
     Push(
         reverse((0b1111 << 28) | value & ((1 << 28) - 1)),
         stack,
@@ -149,10 +184,17 @@ pub fn Div(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
     );
 }
 pub fn Rem(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut left = reverse(stack[*sp+1]) & 0x0FFFFFFF;
+
     Pop(0x4000010, sp, len);
-    let left = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0, sp, len);
+    Pop(0x4000010, sp, len);
+    if left & 0x8000000 != 0 {
+        left -= 0x10000000;
+    }
+    if right & 0x8000000 != 0 {
+        right -= 0x10000000;
+    }
     let value = left % right;
     Push(
         reverse((0b1111 << 28) | value & ((1 << 28) - 1)),
@@ -163,10 +205,17 @@ pub fn Rem(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
     );
 }
 pub fn And(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut left = reverse(stack[*sp+1]) & 0x0FFFFFFF;
+
     Pop(0x4000010, sp, len);
-    let left = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0, sp, len);
+    Pop(0x4000010, sp, len);
+    if left & 0x8000000 != 0 {
+        left -= 0x10000000;
+    }
+    if right & 0x8000000 != 0 {
+        right -= 0x10000000;
+    }
     let value = left & right;
     Push(
         reverse((0b1111 << 28) | value & ((1 << 28) - 1)),
@@ -177,10 +226,17 @@ pub fn And(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
     );
 }
 pub fn Or(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut left = reverse(stack[*sp+1]) & 0x0FFFFFFF;
+
     Pop(0x4000010, sp, len);
-    let left = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0, sp, len);
+    Pop(0x4000010, sp, len);
+    if left & 0x8000000 != 0 {
+        left -= 0x10000000;
+    }
+    if right & 0x8000000 != 0 {
+        right -= 0x10000000;
+    }
     let value = left | right;
     Push(
         reverse((0b1111 << 28) | value & ((1 << 28) - 1)),
@@ -191,10 +247,17 @@ pub fn Or(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
     );
 }
 pub fn Xor(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut left = reverse(stack[*sp+1]) & 0x0FFFFFFF;
+
     Pop(0x4000010, sp, len);
-    let left = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0, sp, len);
+    Pop(0x4000010, sp, len);
+    if left & 0x8000000 != 0 {
+        left -= 0x10000000;
+    }
+    if right & 0x8000000 != 0 {
+        right -= 0x10000000;
+    }
     let value = left ^ right;
     Push(
         reverse((0b1111 << 28) | value & ((1 << 28) - 1)),
@@ -205,10 +268,17 @@ pub fn Xor(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
     );
 }
 pub fn Lsl(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut left = reverse(stack[*sp+1]) & 0x0FFFFFFF;
+
     Pop(0x4000010, sp, len);
-    let left = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0, sp, len);
+    Pop(0x4000010, sp, len);
+    if left & 0x8000000 != 0 {
+        left -= 0x10000000;
+    }
+    if right & 0x8000000 != 0 {
+        right -= 0x10000000;
+    }
     let value = left << right;
     Push(
         reverse((0b1111 << 28) | value & ((1 << 28) - 1)),
@@ -219,10 +289,17 @@ pub fn Lsl(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
     );
 }
 pub fn Lsr(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut right = reverse(stack[*sp]) & 0x0FFFFFFF;
+    let mut left = reverse(stack[*sp+1]) & 0x0FFFFFFF;
+
     Pop(0x4000010, sp, len);
-    let left = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0, sp, len);
+    Pop(0x4000010, sp, len);
+    if left & 0x8000000 != 0 {
+        left -= 0x10000000;
+    }
+    if right & 0x8000000 != 0 {
+        right -= 0x10000000;
+    }
     let value = left >> right;
     Push(
         reverse((0b1111 << 28) | value & ((1 << 28) - 1)),
@@ -235,9 +312,15 @@ pub fn Lsr(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
 pub fn Asr() {}
 
 pub fn Neg(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let operand = stack[*sp];
-    Pop(0, sp, len);
+    let mut operand = reverse(stack[*sp])&0x0FFFFFFF;
+
+    if operand & 0x8000000 != 0 {
+        operand -= 0x10000000;
+    }
+    Pop(0x4000010, sp, len);
+
     let value = -operand;
+
     Push(
         reverse((0b1111 << 28) | value & ((1 << 28) - 1)),
         stack,
@@ -247,9 +330,15 @@ pub fn Neg(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
     );
 }
 pub fn Not(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let operand = stack[*sp];
-    Pop(0, sp, len);
-    let value = !operand;
+    let mut operand = reverse(stack[*sp])&0x0FFFFFFF;
+    Pop(0x4000010, sp, len);
+
+    let mut value = !operand;
+    if value & 0x8000000 != 0 {
+        value -= 0x10000000;
+    }
+
+
     Push(
         reverse((0b1111 << 28) | value & ((1 << 28) - 1)),
         stack,
@@ -263,12 +352,10 @@ pub fn Stprint(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize) 
     let mut value = (reverse(instruction) & 0x0FFFFFFF) & !3;
 
     let start = *sp + (value / 4) as usize;
-    // println!{"stprint {} {:x} {}", *sp, stack[*sp], value};
     for i in (start..STACK_SIZE) {
         let v = reverse(stack[i]) & 0x0FFFFFFF;
         // *sp += 1;
 
-        // println!(" v: {:x} {:x}", v, stack[i]);
         for x in (0..=24).step_by(8) {
             let byte = ((v >> x) & 0xFF) as u8;
             let ch = byte as char;
@@ -284,159 +371,201 @@ pub fn Stprint(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize) 
         // }
     }
 
-    // println!("stprint {:x} {:x}", value, reverse((instruction))  );
 }
-pub fn Call(instruction: i32) {
+pub fn Call(instruction: i32, pc: &mut i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32, next: &mut i32) {
+    let mut offset = (reverse(instruction) & 0x0FFFFFFF) & !3;
+    // println!("call {} {:x}", offset, next);
+    Push(
+        reverse((0b1111 << 28) | (*next+4) & ((1 << 28) - 1) & !3),
+        stack,
+        sp,
+        len,
+        &mut false,
+    );
+
+
+    Goto(reverse((0x0111 << 28) | (offset & ((1 << 28) - 1))), pc);
+}
+pub fn Return(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, pc: &mut i32, len: &mut u32) {
     let mut offset = (reverse(instruction) & 0x0FFFFFFF) & !3;
 
-    Goto((0x0111 << 28) | (offset & ((1 << 28) - 1)), &mut 0);
-}
-pub fn Return(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize) {
-    let mut offset = (reverse(instruction) & 0x0FFFFFFF) & !3;
-    *sp += (offset / 4) as usize;
-    let value = stack[*sp + (offset / 4) as usize];
+    let wp = stack[(*sp + (offset/4) as usize)];
+    let value = (reverse(wp) & 0x0FFFFFFF) & !3;
+    Pop(reverse((0b0001 << 28) | (offset) & ((1 << 28)-1)& !3), sp, len);
+
+    *pc = value ;
+
 }
 pub fn Goto(instruction: i32, pc: &mut i32) {
     let mut offset = (reverse(instruction) & 0x0FFFFFFF) & !3;
+    // println!("{} {:x}", offset, reverse(instruction));
+
     if offset & 0x8000000 != 0 {
         offset -= 0x10000000;
     }
-    *pc = (offset);
-    // println!("goto {}", offset)
-}
-pub fn Eq(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let mut offset = (reverse(instruction) & 0x0EFFFFFF) & !3;
 
-    if offset & 0x1000000 != 0 {
-        offset -= 0x10000000;
+    *pc = (offset);
+}
+pub fn Eq(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32,pc: &mut i32) {
+    let mut offset = (reverse(instruction) & 0x01FFFFFF) & !3;
+
+    if (offset & 0x1000000) != 0 {
+        
+        offset |= 0xFE000000u32 as i32;  
     }
 
+    println!("eq {}", offset);
     let right = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0x4000010, sp, len);
-    let left = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0, sp, len);
+    // Pop(0x4000010, sp, len);
+    let left = reverse(stack[*sp+1]) & 0x0FFFFFFF;
+    // Pop(0, sp, len);
     if left == right {
-        Goto((0x0111 << 28) | (offset & ((1 << 28) - 1)), &mut 0);
+        Goto(reverse((0x0111 << 28) | (offset & ((1 << 28) - 1))), pc);
     } else {
         Nop();
     }
 }
-pub fn Ne(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let offset = (reverse(instruction) & 0x0EFFFFFF) & !3;
-
+pub fn Ne(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32,pc: &mut i32) {
+    let offset = (reverse(instruction) & 0x01FFFFFF) & !3;
     let right = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0x4000010, sp, len);
-    let left = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0, sp, len);
+
+    let left = reverse(stack[*sp+1]) & 0x0FFFFFFF;
 
     if left != right {
-        Goto((0x0111 << 28) | (offset & ((1 << 28) - 1)), &mut 0);
+        Goto(reverse((0x0111 << 28) | (offset & ((1 << 28) - 1))), pc);
     } else {
         Nop();
     }
 }
-pub fn Lt(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let offset = (reverse(instruction) & 0x0EFFFFFF) & !3;
+pub fn Lt(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32,pc: &mut i32) {
+    let offset = (reverse(instruction) & 0x01FFFFFF) & !3;
 
     let right = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0x4000010, sp, len);
-    let left = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0, sp, len);
+
+    let left = reverse(stack[*sp+1]) & 0x0FFFFFFF;
+
     if left < right {
-        Goto((0x0111 << 28) | (offset & ((1 << 28) - 1)), &mut 0);
+        Goto(reverse((0x0111 << 28) | (offset & ((1 << 28) - 1))), pc);
     } else {
         Nop();
     }
 }
-pub fn Gt(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let offset = (reverse(instruction) & 0x0EFFFFFF) & !3;
+pub fn Gt(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32,pc: &mut i32) {
+    let offset = (reverse(instruction) & 0x01FFFFFF) & !3;
 
     let right = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0x4000010, sp, len);
-    let left = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0, sp, len);
+    // Pop(0x4000010, sp, len);
+    let left = reverse(stack[*sp+1]) & 0x0FFFFFFF;
+    // Pop(0, sp, len);
 
     if left > right {
-        Goto((0x0111 << 28) | (offset & ((1 << 28) - 1)), &mut 0);
+        Goto((0x0111 << 28) | (offset & ((1 << 28) - 1)), pc);
     } else {
         Nop();
     }
 }
-pub fn Le(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let offset = (reverse(instruction) & 0x0EFFFFFF) & !3;
+pub fn Le(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32,pc: &mut i32) {
+    let offset = (reverse(instruction) & 0x01FFFFFF) & !3;
 
     let right = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0x4000010, sp, len);
-    let left = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0, sp, len);
+    // Pop(0x4000010, sp, len);
+    let left = reverse(stack[*sp+4]) & 0x0FFFFFFF;
+    // Pop(0, sp, len);
 
-    if left > right {
-        Goto((0x0111 << 28) | (offset & ((1 << 28) - 1)), &mut 0);
+    if left <= right {
+        Goto((0x0111 << 28) | (offset & ((1 << 28) - 1)), pc);
     } else {
         Nop();
     }
 }
-pub fn Ge(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let offset = (reverse(instruction) & 0x0EFFFFFF) & !3;
+pub fn Ge(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32,pc: &mut i32) {
 
+    let mut offset = (reverse(instruction) & 0x01FFFFFF) & !3;
     let right = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0x4000010, sp, len);
-    let left = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0, sp, len);
 
-    if left > right {
-        Goto((0x0111 << 28) | (offset & ((1 << 28) - 1)), &mut 0);
+    let left = reverse(stack[*sp+1]) & 0x0FFFFFFF;
+    // if offset & 0x0FFFFFFF != 0 {
+    //     offset -= 0x10000000;
+    // }
+
+    if (offset & 0x1000000) != 0 {
+        
+        offset |= 0xFE000000u32 as i32;  
+    }
+
+
+
+    if left >= right {
+
+        Goto(reverse((0x0111 << 28) | (offset & ((1 << 28) - 1))), pc);
     } else {
+
         Nop();
     }
 }
-pub fn Ez(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let offset = (reverse(instruction) & 0x0EFFFFFF) & !3;
+pub fn Ez(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32,pc: &mut i32) {
+    let offset = (reverse(instruction) & 0x01FFFFFF) & !3;
 
-    let x = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0x4000010, sp, len);
-
+    let mut x = reverse(stack[*sp]) & 0x0FFFFFFF;
+    // Pop(0x4000010, sp, len);
+    if x & 0x08000000 != 0 {
+        x -= 0x10000000;
+    }
     if x == 0 {
-        Goto((0x0111 << 28) | (offset & ((1 << 28) - 1)), &mut 0);
+        Goto(reverse((0x0111 << 28) | (offset & ((1 << 28) - 1))), pc);
+
     } else {
         Nop();
     }
 }
-pub fn Nz(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let offset = (reverse(instruction) & 0x0EFFFFFF) & !3;
+pub fn Nz(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32,pc: &mut i32) {
+    let offset = (reverse(instruction) & 0x01FFFFFF) & !3;
 
-    let x = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0x4000010, sp, len);
-
+    let mut x = reverse(stack[*sp]) & 0x0FFFFFFF;
+    // Pop(0x4000010, sp, len);
+    if x & 0x08000000 != 0 {
+        x -= 0x10000000;
+    }
     if x != 0 {
-        Goto((0x0111 << 28) | (offset & ((1 << 28) - 1)), &mut 0);
+        Goto(reverse((0x0111 << 28) | (offset & ((1 << 28) - 1))), pc);
+
     } else {
         Nop();
     }
 }
-pub fn Mi(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let offset = (reverse(instruction) & 0x0EFFFFFF) & !3;
+pub fn Mi(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32, pc: &mut i32) {
+    let offset = (reverse(instruction) & 0x01FFFFFF) & !3;
 
     let x = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0x4000010, sp, len);
+    // Pop(0x4000010, sp, len);
 
     if x < 0 {
-        Goto((0x0111 << 28) | (offset & ((1 << 28) - 1)), &mut 0);
+        Goto(reverse((0x0111 << 28) | (offset & ((1 << 28) - 1))), pc);
+
     } else {
         Nop();
     }
 }
-pub fn Pl(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let offset = (reverse(instruction) & 0x0EFFFFFF) & !3;
+pub fn Pl(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32, pc: &mut i32) {
+    let offset = (reverse(instruction) & 0x01FFFFFF) & !3;
 
-    let x = reverse(stack[*sp]) & 0x0FFFFFFF;
-    Pop(0x4000010, sp, len);
+    let mut x = reverse(stack[*sp]) & 0x0FFFFFFF;
+
+    if x & 0x08000000 != 0 {
+        x -= 0x10000000;
+    }
+    // Pop(0x4000010, sp, len);
 
     if x >= 0 {
-        Goto((0x0111 << 28) | (offset & ((1 << 28) - 1)), &mut 0);
+
+        Goto(reverse((0x0111 << 28) | (offset & ((1 << 28) - 1))), pc);
     } else {
         Nop();
     }
+
+    //     println!("pl {}", offset);
+    // println!("{:x?}", stack);
+    // println!("{} {:x}", sp, stack[*sp]);
 }
 pub fn Dup(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
     let mut offset = (reverse(instruction) & 0x0FFFFFFF) & !3;
@@ -447,10 +576,22 @@ pub fn Dup(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len:
 }
 pub fn Print(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize) {
     let format = reverse(instruction) & 0x3;
-    let offset = (reverse(instruction) & 0x0FFFFFFF) & !3;
+    let mut offset = (reverse(instruction) & 0x0FFFFFFF) & !3;
 
-    let value = reverse(stack[*sp + (offset / 4) as usize]) & 0x0FFFFFFF;
-    println!("{}", value);
+    if offset & 0x08000000 != 0 {
+        offset -= 0x10000000;
+    }
+    // println!("print {}", offset);
+    // println!("{:x?}", stack);
+    // println!("{} {:x}", sp, stack[*sp]);
+    // offset -= 1;
+    // let value = reverse(stack[*sp + (offset / 4) as usize]) & 0x0FFFFFFF;
+    let mut value = reverse(stack[(*sp + (offset/4) as usize)]) & 0x0FFFFFFF;
+    if value & 0x08000000 != 0 {
+        value -= 0x10000000;
+    }
+    // println!("vvv {}", value);
+    println!("{}", value );
     io::stdout().flush().expect("Unable to flush stdout");
     // println!("integer print {} {:x} {:x}", value, instruction, offset);
 }

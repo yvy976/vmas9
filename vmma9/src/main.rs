@@ -65,26 +65,26 @@ fn Arithmetic(instruction: i32, stack: &mut [i32; 1024], sp:  &mut usize, len: &
     }
 }
 
-fn If(instruction: i32, stack: &mut [i32; 1024], sp:  &mut usize, len: &mut u32) {
+fn If(instruction: i32, stack: &mut [i32; 1024], sp:  &mut usize, len: &mut u32, pc: &mut i32) {
     let opcode = (instruction & 0xF0) >> 4;
     let operator = (instruction & 0x0F) >> 1;
 
     if opcode == 8 {
         match operator {
-            0 => Instructions::Eq(instruction, stack, sp, len),
-            1 => Instructions::Ne(instruction, stack, sp, len),
-            2 => Instructions::Lt(instruction, stack, sp, len),
-            3 => Instructions::Gt(instruction, stack, sp, len),
-            4 => Instructions::Le(instruction, stack, sp, len),
-            5 => Instructions::Ge(instruction, stack, sp, len),
+            0 => Instructions::Eq(instruction, stack, sp, len, pc),
+            1 => Instructions::Ne(instruction, stack, sp, len, pc),
+            2 => Instructions::Lt(instruction, stack, sp, len, pc),
+            3 => Instructions::Gt(instruction, stack, sp, len, pc),
+            4 => Instructions::Le(instruction, stack, sp, len, pc),
+            5 => Instructions::Ge(instruction, stack, sp, len, pc),
             _ => println!("some thign wrong"),
         }
     } else if opcode == 9 {
         match operator {
-            0 => Instructions::Ez(instruction, stack, sp, len),
-            1 => Instructions::Nz(instruction, stack, sp, len),
-            2 => Instructions::Mi(instruction, stack, sp, len),
-            3 => Instructions::Pl(instruction, stack, sp, len),
+            0 => Instructions::Ez(instruction, stack, sp, len, pc),
+            1 => Instructions::Nz(instruction, stack, sp, len, pc),
+            2 => Instructions::Mi(instruction, stack, sp, len, pc),
+            3 => Instructions::Pl(instruction, stack, sp, len, pc),
             _ => println!("some thign wrong"),
         }
     }
@@ -136,7 +136,7 @@ fn main() {
         // let opcode = instruction as u32 >> 28;
         let opcode = (instruction & 0xF0) >> 4;
         // if (instruction != 0) {
-        //     println!("{:x} {:x} {}", x, instruction, opcode);
+        //     println!("{} {:x} {}", x, instruction, opcode);
 
         // }
 
@@ -152,10 +152,10 @@ fn main() {
                 1 =>     Instructions::Pop(instruction, &mut STACK_POINTER, &mut LENGTH),
                 2 | 3 => Arithmetic(instruction, &mut STACK, &mut STACK_POINTER, &mut LENGTH),
                 4 =>     Instructions::Stprint(instruction, &mut STACK, &mut STACK_POINTER),
-                5 =>     Instructions::Call(instruction),
-                6 =>     Instructions::Return(instruction, &mut STACK, &mut STACK_POINTER),
+                5 =>     Instructions::Call(instruction, &mut PROGRAM_COUNTER, &mut STACK, &mut STACK_POINTER, &mut LENGTH, &mut x),
+                6 =>     Instructions::Return(instruction, &mut STACK, &mut STACK_POINTER, &mut x, &mut LENGTH),
                 7 =>     Instructions::Goto(instruction, &mut PROGRAM_COUNTER),
-                8 | 9 => If(instruction, &mut STACK, &mut STACK_POINTER, &mut LENGTH),
+                8 | 9 => If(instruction, &mut STACK, &mut STACK_POINTER, &mut LENGTH, &mut PROGRAM_COUNTER),
                 12 =>    Instructions::Dup(instruction, &mut STACK, &mut STACK_POINTER, &mut LENGTH),
                 13 =>    Instructions::Print(instruction, &mut STACK, &mut STACK_POINTER),
                 14 =>    Instructions::Dump(&mut STACK),
@@ -164,13 +164,14 @@ fn main() {
                 _ => print!(""),
             }
             if PROGRAM_COUNTER != 0 {
+                // println!("pcc is  {}", PROGRAM_COUNTER);
                 x += PROGRAM_COUNTER;
             } else {
                 x += 4;
             }
     }
-    // println!("{:x?}", STACK);
-    // println!("{}, {:X}", STACK_POINTER, STACK[STACK_POINTER]);
+    // println!("{:x?}", STACK);   
+    // println!("{}, {:X}", STACK_POINTER, STACK[1016]);
 
 
     // println!("ghuh");
