@@ -40,6 +40,7 @@ fn Arithmetic(instruction: i32, stack: &mut [i32; 1024], sp:  &mut usize, len: &
     let opcode = (instruction & 0xF0) >> 4;
     let operator = instruction & 0x0F;
 
+
     if opcode == 2 {
         match operator {
             0 => Instructions::Add(stack, sp, len),
@@ -114,6 +115,13 @@ fn main() {
     while x <= 4093 {
         PROGRAM_COUNTER = 0;
 
+        // if PROGRAM_COUNTER != 0 {
+        //     x = PROGRAM_COUNTER; // Set x directly to the jump target
+        //     PROGRAM_COUNTER = 0; // Reset for next instruction
+        // } else {
+        //     x += 4; // Otherwise just move to next instruction
+        // }
+
         let instruction = as_bytes(&RAM[(x as usize)..(x + 4) as usize]); 
         // println!("pc {} {} {:x}",x, PROGRAM_COUNTER, instruction);
    
@@ -164,7 +172,6 @@ fn main() {
                 _ => print!(""),
             }
             if PROGRAM_COUNTER != 0 {
-                // println!("pcc is  {}", PROGRAM_COUNTER);
                 x += PROGRAM_COUNTER;
             } else {
                 x += 4;
