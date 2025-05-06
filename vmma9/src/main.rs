@@ -1,14 +1,14 @@
 #![allow(warnings)]
 
 pub mod Instructions;
-pub mod instructions;
+//pub mod instructions;
 
 use std::fs::File;
 use std::io::prelude::*;
 use std::iter::Product;
 use std::{collections::HashMap, env::args, process::exit};
 
-use Instructions::{Ez, Nz};
+use Instructions::{Ez, Nz, reverse};
 
 fn as_bytes(array: &[u8]) -> i32 {
     ((array[0] as i32) << 24)
@@ -127,10 +127,32 @@ fn main() {
    
  
 
-        if (instruction as u32  == 0x02) {
-            println!("nop {:x}", instruction);
-            break;
-        } 
+        // if (instruction as u32  == 0x02) {
+        //     println!("nop {:x}", instruction);
+        //     break;
+        // } 
+        // if instruction & 0xFF == 0x0F {
+        //     // PC is printed _relative_ to the start of your real code (you skip the 4‑byte header)
+        //     let pc_rel = (x as usize).saturating_sub(4);
+        //     // SP is printed in _bytes_ from stack‐bottom
+        //     let sp_bytes = STACK_POINTER * 4;
+        //     let val = reverse(instruction) & 0x0FFF_FFFF;
+    
+        //     println!(
+        //         "DEBUG: PC @ 0x{:04x}, SP @ 0x{:04x}, \
+        //          Mem: 0x{:x} - 0x{:x}, \
+        //          instruction's value field: 0x{:08x}",
+        //         pc_rel,
+        //         sp_bytes,
+        //         0,
+        //         0x1000,
+        //         val,
+        //     );
+    
+        //     x += 4;
+        //     continue;
+        // }
+    
         if (x == 0) {
             // if instruction as u32 == 0xefbeadde {
             if instruction as u32 == 0xdeadbeef {
