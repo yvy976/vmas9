@@ -79,11 +79,19 @@ pub fn Debug(instruction: i32) {}
 pub fn Pop(instruction: i32, sp: &mut usize, len: &mut u32) {
     let mut offset = ((reverse(instruction) & 0x0FFFFFFF) & !3) as u32;
 
-    if offset >= *len * 4 {
-        offset = (*len) * 4;
+    if offset & 0x08000000 != 0 {
+        offset -= 0x10000000;
+    }
+    if offset > *len * 4 {
+        // offset = (*len) * 4;
+        *sp = STACK_SIZE;
+    } else {
+        // println!("also here {} {}", offset, len);
+    *sp += (offset / 4) as usize;
+
+
     }
     // *len -= (offset/4);
-    *sp += (offset / 4) as usize;
     // if *sp >= STACK_SIZE {
     //     *sp = STACK_SIZE-1;
     // }
@@ -91,7 +99,7 @@ pub fn Pop(instruction: i32, sp: &mut usize, len: &mut u32) {
 }
 
 pub fn Add(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    // println!("{:x?}", stack);
+    println!("{:x?}", stack);
     Pop(0x4000010, sp, len);
 
     let mut right = reverse(stack[*sp]) & 0x0FFFFFFF;
@@ -616,13 +624,17 @@ pub fn Print(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize) {
 
     // offset -= 1;
     // let value = reverse(stack[*sp + (offset / 4) as usize]) & 0x0FFFFFFF;
-    let mut value = reverse(stack[(*sp + (offset/4) as usize)]) & 0x0FFFFFFF;
+    let mut value = reverse(stack[(*sp as i32 + (offset/4)) as usize]) & 0x0FFFFFFF;
     if value & 0x08000000 != 0 {
         value -= 0x10000000;
     }
     // println!("vvv {}", value);
     println!("{}", value );
+
     io::stdout().flush().expect("Unable to flush stdout");
+    println!("{:x?}", stack);
+    println!("sp+offset = {} ", *sp as i32 + (offset/4));
+
     // println!("integer print {} {:x} {:x}", value, instruction, offset);
 }
 
