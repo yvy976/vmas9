@@ -1,4 +1,5 @@
 use std::{
+    cmp::min,
     io::{self, stdin, Write},
     process::exit,
 };
@@ -54,26 +55,60 @@ pub fn Input(stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
         &mut false,
     );
 }
+
 pub fn Stinput(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize, len: &mut u32) {
-    let size = reverse(instruction) & 0x0FFFFFFF;
     let mut value = String::new();
-    stdin().read_line(&mut value);
 
-    let svalue = value
-        .trim()
-        .split_at(size as usize)
-        .0
-        .parse::<i32>()
-        .unwrap();
+    if stdin().read_line(&mut value).is_err() {
+        println!("Error reading input");
+        return;
+    }
 
-    Push(
-        reverse((0b1111 << 28) | svalue & ((1 << 28) - 1)),
-        stack,
-        sp,
-        len,
-        &mut false,
-    );
+    let size = (instruction & 0x0FFFFFFF) as usize;
+
+    let trimmed = value.trim();
+
+    if trimmed.is_empty() {
+        Push(0, stack, sp, len, &mut false);
+        return;
+    }
+
+    let svalue = &trimmed[..std::cmp::min(size, trimmed.len())];
+    let c = ceil(svalue.len(), 3);
+    let mut v: Vec<i32> = Vec::new();
+    let chunk_size = 3;
+    let c = ceil(svalue.len(), chunk_size);
+    let mut v: Vec<i32> = Vec::new();
+
+    for i in 0..c {
+        let start = i * chunk_size;
+        let end = std::cmp::min(start + chunk_size, svalue.len());
+        let substr = &svalue[start..end];
+        let bytes = substr.as_bytes();
+
+        let mut instrs: [i32; 1] = [0; 1];
+
+        for (j, &byte) in bytes.iter().enumerate() {
+            let instr_idx = j / 4;
+            let byte_offset = j % 4;
+            instrs[instr_idx] |= (byte as i32) << (8 * (3 - byte_offset));
+            if i < c - 1 {
+                instrs[instr_idx] |= 0x01;
+            }
+        }
+
+        for instr in instrs.iter() {
+            v.push((*instr));
+        }
+    }
+
+    v.reverse();
+
+    for &instr in &v {
+        Push((instr), stack, sp, len, &mut false);
+    }
 }
+
 pub fn Debug(instruction: i32) {}
 
 pub fn Pop(instruction: i32, sp: &mut usize, len: &mut u32) {
@@ -626,7 +661,15 @@ pub fn Print(instruction: i32, stack: &mut [i32; STACK_SIZE], sp: &mut usize) {
         value -= 0x10000000;
     }
 
-    println!("{}", value);
+    if format == 0 {
+        println!("{}", value);
+    } else if format == 1 {
+        println!("0x{:x}", value);
+    } else if format == 2 {
+        println!("0b{:b}", value);
+    } else if format == 3 {
+        println!("0o{:o}", value);
+    }
 
     io::stdout().flush().expect("Unable to flush stdout");
 }
@@ -651,4 +694,8 @@ pub fn Push(
         *len += 1;
     }
     stack[*sp] = (instruction);
+}
+
+fn ceil(dividend: usize, divisor: usize) -> usize {
+    (dividend + divisor - 1) / divisor
 }
